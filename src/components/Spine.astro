@@ -1,0 +1,13 @@
+---
+interface Props {
+  d: string;
+}
+const { d } = Astro.props;
+---
+
+<!-- one line, drawn top to bottom as you scroll -->
+<div class="spine" aria-hidden="true">
+  <svg viewBox="0 0 100 1000" preserveAspectRatio="none">
+    <path pathLength="1" d={d} vector-effect="non-scaling-stroke"></path>
+  </svg>
+</div>

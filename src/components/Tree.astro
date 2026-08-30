@@ -1,0 +1,21 @@
+---
+import type { Branch } from "../lib/ink";
+
+interface Props {
+  branch: Branch;
+  /** which corner it grows from */
+  place?: "br" | "tl";
+  class?: string;
+}
+
+const { branch, place = "br", class: extra = "" } = Astro.props;
+---
+
+<svg class={`tree tree--${place} ${extra}`} viewBox="0 0 1000 1000" aria-hidden="true">
+  {branch.strokes.map((st) => <path d={st.d} stroke-width={st.w} pathLength="1" />)}
+  {
+    branch.buds.map((b, i) => (
+      <circle cx={b.x} cy={b.y} r={b.r} style={`--f:${8 + i * 1.4}%;--t:${40 + i * 1.4}%`} />
+    ))
+  }
+</svg>

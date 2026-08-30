@@ -30,6 +30,19 @@
 	width: min(115%, 72rem);
 	z-index: -1;
 }
+
+/* the right-hand tree only earns its place once there's room for it */
+.bough--right {
+	display: none;
+	inset: auto 4% -12% auto;
+	width: min(76%, 60rem);
+	opacity: 0.75;
+	z-index: -1;
+}
+
+@media (min-width: 900px) {
+	.bough--right { display: block; }
+}
 .sprig {
 	inset: 4% -6% auto auto;
 	width: min(70%, 34rem);
@@ -65,7 +78,8 @@
 	display: block;
 	view-timeline: --field block;
 	width: 100%;
-	margin-top: clamp(4rem, 14vh, 9rem);
+	margin-top: clamp(1rem, 3vh, 2.5rem);
+	max-height: 9vh; /* keep the terraces beat inside one screen */
 	overflow: visible;
 }
 .field path {
@@ -76,4 +90,35 @@
 	opacity: 0.55;
 	stroke-dasharray: 1;
 	stroke-dashoffset: 1;
+}
+
+/* the grove: a small tree per beat, drawn as its section arrives */
+.tree {
+	position: absolute;
+	width: min(46%, 26rem);
+	opacity: 0.5;
+	pointer-events: none;
+	overflow: visible;
+	z-index: -1;
+}
+
+.tree--br { inset: auto -4% -4% auto; }
+.tree--tl { inset: -2% auto auto -3%; }
+
+.tree path {
+	fill: none;
+	stroke: var(--branch);
+	stroke-linecap: round;
+	opacity: 0.65;
+	stroke-dasharray: 1;
+	stroke-dashoffset: 1;
+}
+
+.tree circle {
+	fill: var(--blossom-soft);
+	stroke: var(--blossom);
+	stroke-width: 0.6;
+	opacity: 0;
+	transform-box: fill-box;
+	transform-origin: center;
 }

@@ -1,0 +1,25 @@
+---
+import { PUBLIC_CONTACT_EMAIL } from "astro:env/client";
+import type { Branch } from "../lib/ink";
+
+interface Props {
+  sprig: Branch;
+  mark: string;
+}
+const { sprig, mark } = Astro.props;
+---
+
+<footer>
+  <svg class="sprig" viewBox="0 0 1000 1000" aria-hidden="true">
+    {sprig.strokes.map((st, i) => <path d={st.d} stroke-width={st.w} pathLength="1" style={`--i:${i}`} />)}
+    {
+      sprig.buds.map((b, i) => (
+        <circle cx={b.x} cy={b.y} r={b.r} style={`--f:${10 + i * 1.1}%;--t:${44 + i * 1.1}%`} />
+      ))
+    }
+  </svg>
+  <p class="mark">{mark}</p>
+  <h2>say something</h2>
+  <a class="cta" href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>
+  <p class="colophon">astro · no javascript · motion is css</p>
+</footer>

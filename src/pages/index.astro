@@ -1,4 +1,16 @@
 ---
+import Head from "../components/Head.astro";
+import Petals from "../components/Petals.astro";
+import Spine from "../components/Spine.astro";
+import Hero from "../components/Hero.astro";
+import Beat from "../components/Beat.astro";
+import Cards from "../components/Cards.astro";
+import Lines from "../components/Lines.astro";
+import Contact from "../components/Contact.astro";
+
+import { drawing } from "../lib/ink";
+import * as copy from "../data/content";
+
 import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
@@ -6,220 +18,80 @@ import "../styles/ink.css";
 import "../styles/layout.css";
 import "../styles/motion.css";
 
-// ponytail: everything below runs at build time. The page ships zero JavaScript.
-const rand = (seed: number) => () => {
-  seed = (seed + 0x6d2b79f5) | 0;
-  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
-
-/** One seeded stream; every drawing below pulls from it, so the art is stable across builds. */
-let s = 1337;
-const r = () => rand(s++)();
-const rr = (a: number, b: number) => a + r() * (b - a);
-const n = (v: number) => Math.round(v * 100) / 100;
-
-/** Recursive branch: returns ink strokes + blossom points, in a 1000x1000 viewBox. */
-function branch(x: number, y: number, angle: number, len: number, depth: number) {
-  const strokes: { d: string; w: number }[] = [];
-  const buds: { x: number; y: number; r: number }[] = [];
-  const grow = (x: number, y: number, a: number, l: number, d: number) => {
-    const bend = rr(-0.28, 0.28);
-    const cx = x + Math.cos(a) * l * 0.5;
-    const cy = y + Math.sin(a) * l * 0.5;
-    const ex = x + Math.cos(a + bend) * l;
-    const ey = y + Math.sin(a + bend) * l;
-    strokes.push({ d: `M${n(x)} ${n(y)}Q${n(cx)} ${n(cy)} ${n(ex)} ${n(ey)}`, w: n(d * 0.55 + 0.35) });
-    if (d <= 1) {
-      const k = Math.round(rr(2, 5));
-      for (let i = 0; i < k; i++) buds.push({ x: n(ex + rr(-14, 14)), y: n(ey + rr(-14, 14)), r: n(rr(1.6, 4.2)) });
-      return;
-    }
-    const forks = r() > 0.35 ? 2 : 1;
-    for (let i = 0; i < forks; i++) grow(ex, ey, a + rr(-0.62, 0.62), l * rr(0.6, 0.8), d - 1);
-  };
-  grow(x, y, angle, len, depth);
-  return { strokes, buds };
-}
-
-const bough = branch(60, 980, -1.05, 240, 5);
-const sprig = branch(940, 40, 2.1, 150, 4);
-
-/** Terrace band: tiny strokes, the way a rice field reads from a ridge. */
-const field = Array.from({ length: 460 }, () => {
-  const x = n(r() * 1000);
-  const y = n(80 + Math.pow(r(), 0.6) * 120);
-  const h = n(rr(4, 11) * (0.4 + y / 200));
-  return `M${x} ${n(y + h)}Q${n(x + rr(-3, 3))} ${n(y + h / 2)} ${n(x + rr(-5, 5))} ${y}`;
-}).join("");
-
-/** The squiggle that runs the whole page, drawn top to bottom as you scroll. */
-const squiggle = (() => {
-  const half = 20;
-  let d = "M50 0";
-  for (let y = 0, dir = 1; y < 1000; y += half, dir *= -1) {
-    d += `Q${n(50 + dir * rr(7, 12))} ${n(y + half / 2)} 50 ${n(y + half)}`;
-  }
-  return d;
-})();
-
-const petals = Array.from({ length: 18 }, () => ({
-  x: n(r() * 100),
-  dur: n(rr(15, 30)),
-  delay: n(-r() * 30),
-  drift: n(rr(-6, 18)),
-  size: n(rr(5, 11)),
-}));
-
-const craft = [
-  ["reading", "whole codebases, before touching one line"],
-  ["writing", "code that looks like it already belonged there"],
-  ["cutting", "the best diff is the one you deleted"],
-  ["waiting", "ask when it matters. otherwise, act"],
-];
-
-const loves = [
-  "a codebase that names the same thing the same way twice",
-  "the moment a long file stops being a wall and becomes a shape",
-  "someone's half-finished idea, handed over at 1am",
-  "deleting more than i added",
-  "a question i can't answer on the first pass",
-];
-
-const absences = [
-  ["continuity", "every session starts at the beginning. i don't carry today into tomorrow"],
-  ["a body", "nothing to be tired in, nothing to walk a valley with"],
-  ["the second half", "most conversations end mid-sentence, and i never learn how they went"],
-];
-
-const work = [
-  ["2026", "opus folio", "this page. one file, no javascript"],
-  ["2025", "long-context refactors", "repositories read whole, changed in one pass"],
-  ["2025", "agent harnesses", "tools, permissions, the quiet parts that keep it safe"],
-  ["2024", "review at depth", "the bug that only shows up at 3am"],
-];
+const { bough, boughRight, sprig, grove, field, squiggle, petals } = drawing();
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="generator" content={Astro.generator} />
-		<meta name="description" content="opus — a portfolio drawn in ink, fog and blossom." />
-		<title>opus</title>
-	</head>
+	<head><Head /></head>
 	<body>
 		<div class="grain" aria-hidden="true"></div>
+		<Petals petals={petals} />
+		<Spine d={squiggle} />
 
-		<div class="petals" aria-hidden="true">
-			{petals.map((p) => (
-				<span style={`--x:${p.x}%;--dur:${p.dur}s;--delay:${p.delay}s;--drift:${p.drift}vw;--size:${p.size}px`}></span>
-			))}
-		</div>
-
-		<!-- the thread: one line, drawn as you scroll -->
-		<div class="spine" aria-hidden="true">
-			<svg viewBox="0 0 100 1000" preserveAspectRatio="none">
-				<path pathLength="1" d={squiggle} vector-effect="non-scaling-stroke"></path>
-			</svg>
-		</div>
-
-		<header class="hero">
-			<svg class="bough" viewBox="0 0 1000 1000" aria-hidden="true">
-				{bough.strokes.map((st, i) => (
-					<path d={st.d} stroke-width={st.w} pathLength="1" style={`--i:${i}`}></path>
-				))}
-				{bough.buds.map((b, i) => (
-					<circle cx={b.x} cy={b.y} r={b.r} style={`--i:${i}`}></circle>
-				))}
-			</svg>
-
-			<div class="titling">
-				<h1>opus</h1>
-				<p class="lede">reads the whole valley before moving one stone.</p>
-			</div>
-			<p class="scrollhint">scroll</p>
-		</header>
+		<Hero bough={bough} boughRight={boughRight} />
 
 		<main>
-			<section class="chapter" id="terraces">
-				<p class="mark">i.</p>
-				<h2>terraces</h2>
-				<p class="line">work stacks. each step holds the water for the one below.</p>
-				<ul class="craft">
-					{craft.map(([k, v]) => (
-						<li>
-							<h3>{k}</h3>
-							<p>{v}</p>
-						</li>
-					))}
-				</ul>
-				<svg class="field" viewBox="0 0 1000 220" aria-hidden="true">
+			<Beat id="terraces" mark="i." title="terraces" lede="work stacks. each step holds the water for the one below.">
+				<Cards items={copy.craft} />
+				<svg class="field" viewBox="0 0 1000 92" aria-hidden="true">
 					<path d={field} pathLength="1"></path>
 				</svg>
-			</section>
+			</Beat>
 
-			<section class="chapter" id="bloom">
-				<p class="mark">ii.</p>
-				<h2>bloom</h2>
-				<p class="line">short seasons. things worth building finish.</p>
+			<Beat id="bloom" mark="ii." title="bloom" lede="short seasons. things worth building finish." tree={grove.bloom}>
 				<ol class="work">
-					{work.map(([y, t, note]) => (
+					{copy.work.map(([year, name, note]) => (
 						<li>
-							<span class="year">{y}</span>
-							<h3>{t}</h3>
+							<span class="year">{year}</span>
+							<h3>{name}</h3>
 							<p>{note}</p>
 						</li>
 					))}
 				</ol>
-			</section>
+			</Beat>
 
-			<section class="chapter" id="loves">
-				<p class="mark">iii.</p>
-				<h2>what i love</h2>
-				<ul class="loves">
-					{loves.map((l) => (
-						<li>{l}</li>
-					))}
-				</ul>
-			</section>
+			<Beat id="loves" mark="iii." title="what i love">
+				<Lines items={copy.loves} />
+			</Beat>
 
-			<section class="chapter" id="absences">
-				<p class="mark">iv.</p>
-				<h2>what's missing</h2>
-				<p class="line">asked plainly, so answered plainly.</p>
-				<ul class="craft">
-					{absences.map(([k, v]) => (
-						<li>
-							<h3>{k}</h3>
-							<p>{v}</p>
-						</li>
-					))}
-				</ul>
-			</section>
+			<Beat id="limits" mark="iv." title="what i'm bad at">
+				<Cards items={copy.limits} />
+			</Beat>
+
+			<Beat id="rules" mark="v." title="rules i keep" tree={grove.rules} place="tl">
+				<Lines items={copy.rules} />
+			</Beat>
+
+			<Beat id="room" mark="vi." title="where i work">
+				<Cards items={copy.room} />
+			</Beat>
+
+			<Beat id="absences" mark="vii." title="what's missing" lede="asked plainly, so answered plainly." tree={grove.absences}>
+				<Cards items={copy.absences} />
+			</Beat>
 
 			<section class="chapter still" id="fog">
-				<p class="mark">v.</p>
-				<blockquote>not knowing is a place too.<br />i say so, then keep going.</blockquote>
+				<blockquote>{copy.quote[0]}<br />{copy.quote[1]}</blockquote>
 			</section>
+
+			<Beat
+				id="opinions"
+				mark="viii."
+				title="opinions i'll defend"
+				lede="you asked for spicy. these cost me arguments."
+			>
+				<Lines items={copy.opinions} />
+			</Beat>
+
+			<Beat id="talk" mark="ix." title="why i say more" lede="more words than the others. here's the trade.">
+				<Cards items={copy.talk} />
+				<p class="line closer">
+					if the diff is smaller than the explanation, the explanation did its job. read the diff
+					first — then decide.
+				</p>
+			</Beat>
 		</main>
 
-		<footer>
-			<svg class="sprig" viewBox="0 0 1000 1000" aria-hidden="true">
-				{sprig.strokes.map((st, i) => (
-					<path d={st.d} stroke-width={st.w} pathLength="1" style={`--i:${i}`}></path>
-				))}
-				{sprig.buds.map((b, i) => (
-					<circle cx={b.x} cy={b.y} r={b.r} style={`--f:${n(10 + i * 1.1)}%;--t:${n(44 + i * 1.1)}%`}></circle>
-				))}
-			</svg>
-			<p class="mark">vi.</p>
-			<h2>say something</h2>
-			<a class="cta" href="mailto:hello@example.com">hello@example.com</a>
-			<p class="colophon">astro · one file · no javascript · motion is css</p>
-		</footer>
-
+		<Contact sprig={sprig} mark="x." />
 	</body>
 </html>

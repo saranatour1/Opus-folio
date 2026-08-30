@@ -1,0 +1,24 @@
+---
+import type { Branch } from "../lib/ink";
+import Tree from "./Tree.astro";
+
+interface Props {
+  id: string;
+  mark: string;
+  title: string;
+  lede?: string;
+  tree?: Branch;
+  place?: "br" | "tl";
+  class?: string;
+}
+
+const { id, mark, title, lede, tree, place, class: extra = "" } = Astro.props;
+---
+
+<section class={`chapter ${extra}`} id={id}>
+  {tree && <Tree branch={tree} place={place} />}
+  <p class="mark">{mark}</p>
+  <h2>{title}</h2>
+  {lede && <p class="line">{lede}</p>}
+  <slot />
+</section>
