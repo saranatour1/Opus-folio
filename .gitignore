@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+
+# vscode showed 10k changed ?  
+.adal
+.git

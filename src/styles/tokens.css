@@ -1,0 +1,45 @@
+/* palette, type and rhythm — every other file reads from here */
+
+@property --cell {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 26px;
+}
+
+
+:root {
+	--paper: #f3efe5;
+	--paper-2: #ece7da;
+  --paper-dusk: #efe6d6;
+	--ink: #2b2723;
+	--ink-soft: #6f685e;
+	--branch: #3a332c;
+	--blossom: #d4919c;
+	--blossom-soft: #e7c2c7;
+	--moss: #7d8f68;
+	--rule: color-mix(in oklab, var(--ink) 14%, transparent);
+  --grid: color-mix(in oklab, var(--ink) 6%, transparent);
+  --cell: 26px;
+	--grain: 0.05;
+	--display: "Cormorant Garamond", ui-serif, Georgia, serif;
+	--note: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+	--gutter: clamp(1.5rem, 7vw, 9rem);
+	--rhythm: clamp(9rem, 30vh, 22rem);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--paper: #14161a;
+		--paper-2: #101216;
+    --paper-dusk: #171519;
+		--ink: #ece7db;
+		--ink-soft: #8e9088;
+		--branch: #b9b3a6;
+		--blossom: #d9a3ac;
+		--blossom-soft: #7a5259;
+		--moss: #8ea37f;
+		--rule: color-mix(in oklab, var(--ink) 18%, transparent);
+    --grid: color-mix(in oklab, var(--ink) 7%, transparent);
+		--grain: 0.09;
+	}
+}

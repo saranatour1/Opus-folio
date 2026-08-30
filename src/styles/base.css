@@ -1,0 +1,40 @@
+/* reset, paper, typography */
+
+* { box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  /* proximity, not mandatory: chapters are taller than the viewport and
+     mandatory snapping would trap the reader mid-paragraph */
+  scroll-snap-type: y proximity;
+}
+
+body {
+	margin: 0;
+	position: relative; /* so the squiggle spans the document, not the viewport */
+	/* graph paper: two hairline gradients, no image */
+	background-color: var(--paper);
+	background-image:
+		linear-gradient(var(--grid) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+	background-size: var(--cell) var(--cell);
+	color: var(--ink);
+	font: 300 clamp(0.85rem, 0.78rem + 0.3vw, 0.95rem)/1.9 var(--note);
+	letter-spacing: 0.01em;
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+}
+
+h1, h2, h3, blockquote { font-family: var(--display); font-weight: 300; margin: 0; }
+h2 { font-size: clamp(2.75rem, 1.5rem + 6vw, 7rem); line-height: 0.95; letter-spacing: -0.02em; }
+h3 { font-size: clamp(1.35rem, 1rem + 1.2vw, 1.9rem); }
+
+.grain {
+	position: fixed;
+	inset: 0;
+	opacity: var(--grain);
+	pointer-events: none;
+	z-index: 5;
+	mix-blend-mode: multiply;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) { .grain { mix-blend-mode: screen; } }

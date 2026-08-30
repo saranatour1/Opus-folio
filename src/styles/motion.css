@@ -1,0 +1,87 @@
+/* petals, keyframes, scroll-driven motion */
+
+/* ── petals ─────────────────────────────────────────── */
+.petals { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+.petals span {
+	position: absolute;
+	top: -6vh;
+	left: var(--x);
+	width: var(--size);
+	height: var(--size);
+	background: var(--blossom-soft);
+	border-radius: 100% 0 100% 0;
+	opacity: 0;
+	animation: fall var(--dur) linear var(--delay) infinite;
+}
+
+@keyframes fall {
+	0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+	12%  { opacity: 0.75; }
+	88%  { opacity: 0.5; }
+	100% { opacity: 0; transform: translate3d(var(--drift), 108vh, 0) rotate(560deg); }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(1.5rem); } to { opacity: 1; transform: none; } }
+@keyframes breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.85; } }
+
+/* ── scroll-driven, native, no JS ───────────────────── */
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes open { from { opacity: 0; transform: scale(0.2); } to { opacity: 0.9; transform: scale(1); } }
+@keyframes reveal { from { opacity: 0; transform: translateY(2rem); } to { opacity: 1; transform: none; } }
+
+/* the paper opens up as you descend: cells widen, the ground warms toward dusk */
+@keyframes daylight {
+  from { --cell: 26px; background-color: var(--paper); }
+  to   { --cell: 52px; background-color: var(--paper-dusk); }
+}
+@keyframes settle {
+  from { opacity: 0; transform: scale(0.965); letter-spacing: 0.06em; }
+  to   { opacity: 1; transform: none; letter-spacing: normal; }
+}
+
+@supports (animation-timeline: view()) {
+	.chapter > *:not(.field), footer > *:not(.sprig) {
+		animation: reveal linear both;
+		animation-timeline: view();
+		animation-range: entry 6% cover 28%;
+	}
+	.craft li, .work li { animation: reveal linear both; animation-timeline: view(); animation-range: entry 14% cover 36%; }
+
+	.spine path {
+		animation: draw linear both;
+		animation-timeline: scroll(root);
+	}
+
+	body {
+		animation: daylight linear both;
+		animation-timeline: scroll(root);
+	}
+
+	.still blockquote {
+		animation: settle linear both;
+		animation-timeline: view();
+		animation-range: entry 20% cover 48%;
+	}
+	.sprig path {
+		animation: draw linear both;
+		animation-timeline: scroll(root);
+		animation-range: 62% 88%;
+	}
+	.sprig circle {
+		animation: open linear both;
+		animation-timeline: scroll(root);
+		animation-range: calc(80% + var(--f) * 0.12) calc(84% + var(--t) * 0.12);
+	}
+	.field path {
+		animation: draw linear both;
+		animation-timeline: --field;
+		animation-range: entry 15% cover 55%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html { scroll-behavior: auto; scroll-snap-type: none; }
+	*, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+	.spine path, .bough path, .sprig path, .field path { stroke-dashoffset: 0; }
+	.bough circle, .sprig circle { opacity: 0.9; transform: none; }
+	.petals { display: none; }
+}

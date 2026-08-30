@@ -1,0 +1,79 @@
+/* the drawn things: thread, branches, terrace field */
+
+/* ── the thread ─────────────────────────────────────── */
+.spine {
+	position: absolute;
+	inset: 0;
+	width: min(74rem, 100%);
+	margin-inline: auto;
+	pointer-events: none;
+	z-index: 0;
+}
+.spine svg { width: 100%; height: 100%; }
+.spine path {
+	fill: none;
+	stroke: var(--branch);
+	stroke-width: 1;
+	opacity: 0.3;
+	stroke-dasharray: 1;
+	stroke-dashoffset: 1;
+}
+
+/* ── ink drawings ───────────────────────────────────── */
+.bough, .sprig {
+	position: absolute;
+	pointer-events: none;
+	overflow: visible;
+}
+.bough {
+	inset: auto -8% -6% -12%;
+	width: min(115%, 72rem);
+	z-index: -1;
+}
+.sprig {
+	inset: 4% -6% auto auto;
+	width: min(70%, 34rem);
+	opacity: 0.85;
+	z-index: 0;
+}
+.bough path {
+	animation: draw 1.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+	animation-delay: calc(0.35s + var(--i) * 0.045s);
+}
+.bough path, .sprig path {
+	fill: none;
+	stroke: var(--branch);
+	stroke-linecap: round;
+	opacity: 0.7;
+	stroke-dasharray: 1;
+	stroke-dashoffset: 1;
+}
+.bough circle {
+	animation: open 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+	animation-delay: calc(1.1s + var(--i) * 0.035s);
+}
+.bough circle, .sprig circle {
+	fill: var(--blossom-soft);
+	stroke: var(--blossom);
+	stroke-width: 0.6;
+	opacity: 0;
+	transform-box: fill-box;
+	transform-origin: center;
+}
+
+.field {
+	display: block;
+	view-timeline: --field block;
+	width: 100%;
+	margin-top: clamp(4rem, 14vh, 9rem);
+	overflow: visible;
+}
+.field path {
+	fill: none;
+	stroke: var(--moss);
+	stroke-width: 1;
+	stroke-linecap: round;
+	opacity: 0.55;
+	stroke-dasharray: 1;
+	stroke-dashoffset: 1;
+}
