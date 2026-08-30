@@ -6,8 +6,10 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: true
+  workerd: true
 
 # pnpm 10 spelling, for build environments still on it
 onlyBuiltDependencies:
   - esbuild
   - sharp
+  - workerd

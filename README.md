@@ -81,6 +81,16 @@ They render the real page in headless Chrome (`CHROME_PATH` overrides the
 binary), so the social card is the site's own first screen rather than a
 mockup, in the real fonts.
 
+## Deploying
+
+Cloudflare Workers, static assets only — no adapter and no Worker script, since
+nothing runs at request time. [`wrangler.jsonc`](wrangler.jsonc) points at
+`dist/`; the CI deploy step is `npx wrangler deploy`.
+
+Keep that file committed. Without it `wrangler deploy` tries to configure the
+project mid-deploy (`astro add cloudflare`), and that install fails on
+`workerd`'s build scripts.
+
 ## Three things that look like mistakes
 
 1. **CSS minification is disabled** (`vite.build.cssMinify: false`). The
