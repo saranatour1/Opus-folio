@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M19P8QYH6W19PQ0E7KHMMAT2",
+  "session_id": "6f58d9c8-0b2d-417a-be24-ffda7f42bfe8",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-30T15:58:04.539457Z",
+  "branch": "opus-folio-site",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "package.json",
+    "pnpm-workspace.yaml"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5",
+  "turn_id": "a73775dd5cf1",
+  "checkpoint_transcript_start": 1095,
+  "transcript_lines_at_start": 1095,
+  "compact_transcript_start": 193,
+  "token_usage": {
+    "input_tokens": 12,
+    "cache_creation_tokens": 5785,
+    "cache_read_tokens": 1951270,
+    "output_tokens": 4537,
+    "api_call_count": 6
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-30T15:58:04.341652Z",
+    "agent_lines": 11,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 11,
+    "total_lines_changed": 11,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
