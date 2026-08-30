@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M19Q5AZCZV53EGYZX38385FK",
+  "strategy": "manual-commit",
+  "branch": "opus-folio-site",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "README.md",
+    "pnpm-workspace.yaml",
+    "wrangler.jsonc"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 10,
+    "cache_creation_tokens": 10610,
+    "cache_read_tokens": 1731222,
+    "output_tokens": 3772,
+    "api_call_count": 5
+  }
+}
