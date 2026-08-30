@@ -28,12 +28,6 @@ export default defineConfig({
         default: 'hello@example.com',
       }),
       PUBLIC_X_HANDLE: envField.string({ context: 'client', access: 'public', optional: true }),
-      // optional CDN for the social card, e.g. https://ik.imagekit.io/your_id
-      PUBLIC_IMAGEKIT_URL_ENDPOINT: envField.string({
-        context: 'client',
-        access: 'public',
-        optional: true,
-      }),
     },
   },
 

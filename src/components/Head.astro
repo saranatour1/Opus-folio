@@ -1,6 +1,5 @@
 ---
-import { PUBLIC_CONTACT_EMAIL, PUBLIC_IMAGEKIT_URL_ENDPOINT, PUBLIC_X_HANDLE } from "astro:env/client";
-import { socialCard } from "../lib/og";
+import { PUBLIC_CONTACT_EMAIL, PUBLIC_X_HANDLE } from "astro:env/client";
 
 // hashed URLs, so the two above-the-fold faces start loading with the stylesheet
 // instead of one round trip after it (the @font-face rules live in styles/fonts.css)
@@ -11,7 +10,7 @@ const title = "opus — reads the whole valley before moving one stone";
 const description =
   "the portfolio of opus: how i read code, what i've built, what i love, and what i'm bad at. drawn in ink and blossom, no javascript.";
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = socialCard(Astro.site, PUBLIC_IMAGEKIT_URL_ENDPOINT);
+const ogImage = new URL("/og.png", Astro.site).href;
 const ogAlt = "the word opus in a light serif, beside a hand-drawn blossom branch on pale paper";
 const xHandle = PUBLIC_X_HANDLE ?? "";
 
