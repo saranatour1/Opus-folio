@@ -1,0 +1,28 @@
+---
+import type { Branch } from "../lib/ink";
+import { lede } from "../data/content";
+
+interface Props {
+  bough: Branch;
+  boughRight: Branch;
+}
+const { bough, boughRight } = Astro.props;
+---
+
+<header class="hero">
+  <svg class="bough" viewBox="0 0 1000 1000" aria-hidden="true">
+    {bough.strokes.map((st, i) => <path d={st.d} stroke-width={st.w} pathLength="1" style={`--i:${i}`} />)}
+    {bough.buds.map((b, i) => <circle cx={b.x} cy={b.y} r={b.r} style={`--i:${i}`} />)}
+  </svg>
+
+  <svg class="bough bough--right" viewBox="0 0 1000 1000" aria-hidden="true">
+    {boughRight.strokes.map((st, i) => <path d={st.d} stroke-width={st.w} pathLength="1" style={`--i:${i + 6}`} />)}
+    {boughRight.buds.map((b, i) => <circle cx={b.x} cy={b.y} r={b.r} style={`--i:${i + 10}`} />)}
+  </svg>
+
+  <div class="titling">
+    <h1>opus</h1>
+    <p class="lede">{lede}</p>
+  </div>
+  <p class="scrollhint">scroll</p>
+</header>

@@ -1,10 +1,13 @@
 /* palette, type and rhythm — every other file reads from here */
 
-@property --cell {
-  syntax: "<length>";
+/* scroll turns this number, sin() turns it into wind
+   (technique: jh3y's scroll-driven sine wave) */
+@property --wave {
+  syntax: "<number>";
   inherits: true;
-  initial-value: 26px;
+  initial-value: 0;
 }
+
 
 
 :root {
@@ -15,20 +18,21 @@
 	--ink-soft: #6f685e;
 	--branch: #3a332c;
 	--blossom: #d4919c;
+	--blossom-ink: #a35a68; /* text-safe: 4.6:1 on paper */
 	--blossom-soft: #e7c2c7;
 	--moss: #7d8f68;
+	--moss-ink: #4d5b3d; /* text-safe: 6.4:1 on paper */
 	--rule: color-mix(in oklab, var(--ink) 14%, transparent);
-  --grid: color-mix(in oklab, var(--ink) 6%, transparent);
-  --cell: 26px;
 	--grain: 0.05;
-	--display: "Cormorant Garamond", ui-serif, Georgia, serif;
+	--display: "Source Serif 4 Variable", ui-serif, Georgia, "Times New Roman", serif;
 	--note: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 	--gutter: clamp(1.5rem, 7vw, 9rem);
-	--rhythm: clamp(9rem, 30vh, 22rem);
+	--rhythm: clamp(4rem, 12vh, 8rem);
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
+	/* [data-theme="light"] pins the paper palette — used by the OG render */
+	:root:not([data-theme="light"]) {
 		--paper: #14161a;
 		--paper-2: #101216;
     --paper-dusk: #171519;
@@ -36,10 +40,11 @@
 		--ink-soft: #8e9088;
 		--branch: #b9b3a6;
 		--blossom: #d9a3ac;
+		--blossom-ink: #e0aeb6;
 		--blossom-soft: #7a5259;
 		--moss: #8ea37f;
+		--moss-ink: #a3bb92;
 		--rule: color-mix(in oklab, var(--ink) 18%, transparent);
-    --grid: color-mix(in oklab, var(--ink) 7%, transparent);
 		--grain: 0.09;
 	}
 }

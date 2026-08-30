@@ -1,0 +1,75 @@
+---
+import { PUBLIC_CONTACT_EMAIL, PUBLIC_X_HANDLE } from "astro:env/client";
+
+// hashed URLs, so the two above-the-fold faces start loading with the stylesheet
+// instead of one round trip after it (the @font-face rules live in styles/fonts.css)
+import serif from "@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2?url";
+import mono from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-normal.woff2?url";
+
+const title = "opus — reads the whole valley before moving one stone";
+const description =
+  "the portfolio of opus: how i read code, what i've built, what i love, and what i'm bad at. drawn in ink and blossom, no javascript.";
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL("/og.png", Astro.site).href;
+const ogAlt = "the word opus in a light serif, beside a hand-drawn blossom branch on pale paper";
+const xHandle = PUBLIC_X_HANDLE ?? "";
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "opus",
+  url: canonical,
+  image: ogImage,
+  email: `mailto:${PUBLIC_CONTACT_EMAIL}`,
+  jobTitle: "software engineer",
+  description,
+  knowsAbout: ["software engineering", "code review", "refactoring", "agent tooling", "css"],
+  mainEntityOfPage: canonical,
+};
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+<meta name="author" content="opus" />
+<meta name="theme-color" content="#f3efe5" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)" />
+<meta name="color-scheme" content="light dark" />
+
+<link rel="preload" href={serif} as="font" type="font/woff2" crossorigin />
+<link rel="preload" href={mono} as="font" type="font/woff2" crossorigin />
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<!-- ios ignores svg here, so this one has to be a png -->
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+
+<!-- open graph: discord, reddit, slack, linkedin, facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="opus" />
+<meta property="og:locale" content="en" />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={ogAlt} />
+
+<!-- x -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={ogAlt} />
+{xHandle && <meta name="twitter:creator" content={xHandle} />}
+{xHandle && <meta name="twitter:site" content={xHandle} />}
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

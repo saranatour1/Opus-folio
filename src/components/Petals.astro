@@ -1,0 +1,18 @@
+---
+import type { Drawing } from "../lib/ink";
+
+interface Props {
+  petals: Drawing["petals"];
+}
+const { petals } = Astro.props;
+---
+
+<div class="petals" aria-hidden="true">
+  {
+    petals.map((p) => (
+      <span
+        style={`--x:${p.x}%;--dur:${p.dur}s;--delay:${p.delay}s;--drift:${p.drift}vw;--size:${p.size}px;--phase:${p.phase}`}
+      />
+    ))
+  }
+</div>

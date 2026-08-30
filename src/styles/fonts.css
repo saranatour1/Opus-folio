@@ -1,6 +1,8 @@
-/* self-hosted via @fontsource — no external font requests */
+/* self-hosted via @fontsource — no external font requests.
+   Both families live here rather than in a component, so there is one place to
+   look. wght.css carries a @font-face per subset with unicode-range, so a browser
+   only ever downloads latin. */
 
-@import "@fontsource/cormorant-garamond/latin-300.css";
-@import "@fontsource/cormorant-garamond/latin-300-italic.css";
+@import "@fontsource-variable/source-serif-4/wght.css";
+@import "@fontsource-variable/source-serif-4/wght-italic.css";
 @import "@fontsource/ibm-plex-mono/latin-300.css";
-@import "@fontsource/ibm-plex-mono/latin-400.css";

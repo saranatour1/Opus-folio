@@ -1,6 +1,20 @@
 /* hero, chapters, footer */
 
 /* ── hero ───────────────────────────────────────────── */
+/* the snap targets themselves — scroll-snap-type on <html> does nothing without these.
+   `always` makes one gesture land one beat. */
+.hero,
+.chapter,
+footer {
+	scroll-snap-align: center;
+	scroll-snap-stop: always;
+}
+
+.hero,
+footer {
+	scroll-snap-align: start;
+}
+
 .hero {
 	position: relative;
 	min-height: 100svh;
@@ -37,9 +51,15 @@ h1 {
 main { position: relative; padding: 0 var(--gutter); }
 .chapter {
 	position: relative;
+	/* named timeline: view() on inner SVG nodes doesn't resolve, so the beat's
+	   tree animates against its section instead */
+	view-timeline: --beat block;
 	max-width: 74rem;
 	margin: 0 auto;
 	padding: var(--rhythm) 0;
+	min-height: 100svh;
+	display: grid;
+	align-content: center;
 }
 #bloom { padding-left: clamp(0rem, 8vw, 9rem); }
 
@@ -47,7 +67,7 @@ main { position: relative; padding: 0 var(--gutter); }
 	font-family: var(--display);
 	font-style: italic;
 	font-size: 1.15rem;
-	color: var(--blossom);
+	color: var(--blossom-ink);
 	margin: 0 0 0.75rem;
 }
 .line { max-width: 42ch; margin: 1.5rem 0 0; color: var(--ink-soft); }
@@ -55,10 +75,10 @@ main { position: relative; padding: 0 var(--gutter); }
 .craft, .work {
 	list-style: none;
 	padding: 0;
-	margin: clamp(4rem, 12vh, 8rem) 0 0;
+	margin: clamp(1.5rem, 4vh, 3rem) 0 0;
 	display: grid;
 	column-gap: clamp(2rem, 5vw, 5rem);
-	row-gap: clamp(2.75rem, 7vh, 4.5rem);
+	row-gap: clamp(1.25rem, 3.2vh, 3rem);
 }
 .craft { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
 .work { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); max-width: 58rem; }
@@ -70,20 +90,20 @@ main { position: relative; padding: 0 var(--gutter); }
 }
 .craft li:hover, .work li:hover { border-color: var(--blossom); }
 .craft p, .work p { margin: 0.4rem 0 0; color: var(--ink-soft); }
-.year { display: block; font-size: 0.68rem; letter-spacing: 0.32em; color: var(--moss); margin-bottom: 1.25rem; }
+.year { display: block; font-size: 0.68rem; letter-spacing: 0.32em; color: var(--moss-ink); margin-bottom: 1.25rem; }
 
 .loves {
 	list-style: none;
 	padding: 0;
-	margin: clamp(3rem, 9vh, 6rem) 0 0;
+	margin: clamp(2rem, 5vh, 3.5rem) 0 0;
 	max-width: 46ch;
-	font-size: clamp(1.05rem, 0.9rem + 0.7vw, 1.45rem);
+	font-size: clamp(1rem, 0.75rem + 0.55vh + 0.35vw, 1.45rem);
 	font-family: var(--display);
-	line-height: 1.5;
+	line-height: 1.45;
 }
 
 .loves li {
-	padding: 1.1rem 0;
+	padding: clamp(0.5rem, 1.3vh, 1.1rem) 0;
 	border-bottom: 1px solid var(--rule);
 }
 
@@ -97,7 +117,7 @@ blockquote {
 	font-size: clamp(1.9rem, 1rem + 4.5vw, 4.5rem);
 	line-height: 1.15;
 	font-style: italic;
-	color: var(--moss);
+	color: var(--moss-ink);
 }
 
 /* ── footer ─────────────────────────────────────────── */
@@ -122,3 +142,91 @@ footer > *:not(.sprig) { position: relative; max-width: 74rem; margin-inline: au
 }
 .cta:hover { color: var(--blossom); border-color: currentColor; }
 .colophon { margin-top: clamp(5rem, 16vh, 10rem); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--ink-soft); }
+
+.closer {
+	margin-top: clamp(1.5rem, 4vh, 2.5rem);
+	max-width: 48ch;
+	font-style: italic;
+}
+
+/* ── phones ─────────────────────────────────────────────────
+   A beat that outgrows the screen makes the browser relax snapping, so on
+   small screens everything tightens until each one fits again. */
+@media (max-width: 640px) {
+	.chapter {
+		padding-block: clamp(2rem, 8vh, 4rem);
+	}
+
+	h2 {
+		font-size: clamp(2.25rem, 9vw, 3.25rem);
+	}
+
+	.craft,
+	.work {
+		grid-template-columns: 1fr;
+		row-gap: 0.7rem;
+		margin-top: clamp(1rem, 3vh, 2rem);
+	}
+
+	.craft li,
+	.work li {
+		padding-top: 0.7rem;
+	}
+
+	.work h3 {
+		font-size: 1.2rem;
+	}
+
+	.year {
+		margin-bottom: 0.5rem;
+	}
+
+	.line {
+		margin-top: 0.75rem;
+	}
+
+	.field {
+		margin-top: 1rem;
+	}
+
+	.closer {
+		margin-top: 1rem;
+	}
+
+	.loves {
+		font-size: 1.05rem;
+	}
+
+	.loves li {
+		padding: 0.7rem 0;
+	}
+
+	.line,
+	.lede {
+		max-width: 34ch;
+	}
+
+	/* trees stay decoration, never a background for text */
+	.tree {
+		width: 58%;
+		opacity: 0.32;
+	}
+
+	.cta {
+		margin-top: 1.75rem;
+		/* comfortable tap target */
+		padding-block: 0.4em 0.35em;
+	}
+
+	.colophon {
+		margin-top: clamp(2.5rem, 10vh, 5rem);
+	}
+}
+
+/* very short screens: let the beats breathe instead of snapping */
+@media (max-height: 680px) {
+	.chapter {
+		min-height: auto;
+		padding-block: clamp(3rem, 10vh, 5rem);
+	}
+}
