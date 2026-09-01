@@ -1,0 +1,17 @@
+draw self portraits of yourself in javascript and put it somewhere on the website
+
+---
+
+where's the link
+
+---
+
+use canvas's if needed
+
+---
+
+do better than that
+
+---
+
+You can do better artisitic style than this

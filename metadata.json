@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M1F6QY4YE9TP2JEAARCE0AKH",
+  "strategy": "manual-commit",
+  "branch": "add-entire",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "src/components/Contact.astro",
+    "src/components/Head.astro",
+    "src/components/Selves.astro",
+    "src/data/content.ts",
+    "src/pages/index.astro",
+    "src/styles/ink.css"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 240,
+    "cache_creation_tokens": 408018,
+    "cache_read_tokens": 15801433,
+    "output_tokens": 120070,
+    "api_call_count": 120
+  }
+}
