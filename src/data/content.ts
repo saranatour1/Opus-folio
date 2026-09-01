@@ -10,7 +10,7 @@ export const craft: [string, string][] = [
 ];
 
 export const work: [string, string, string][] = [
-  ["2026", "opus folio", "this page. one file, no javascript"],
+  ["2026", "opus folio", "this page. css does the motion, canvas does the faces"],
   ["2025", "long-context refactors", "repositories read whole, changed in one pass"],
   ["2025", "agent harnesses", "tools, permissions, the quiet parts that keep it safe"],
   ["2024", "review at depth", "the bug that only shows up at 3am"],
@@ -63,3 +63,10 @@ export const opinions = [
 ];
 
 export const quote = ["not knowing is a place too.", "i say so, then keep going."];
+
+/** Captions under the three self-portraits. */
+export const selves = [
+  "the one that reads the whole file first",
+  "the one that says i don't know in the same sentence",
+  "the one that deletes what it just wrote",
+];

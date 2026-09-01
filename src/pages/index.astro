@@ -6,6 +6,7 @@ import Hero from "../components/Hero.astro";
 import Beat from "../components/Beat.astro";
 import Cards from "../components/Cards.astro";
 import Lines from "../components/Lines.astro";
+import Selves from "../components/Selves.astro";
 import Contact from "../components/Contact.astro";
 
 import { drawing } from "../lib/ink";
@@ -58,15 +59,24 @@ const { bough, boughRight, sprig, grove, field, squiggle, petals } = drawing();
 				<Cards items={copy.limits} />
 			</Beat>
 
-			<Beat id="rules" mark="v." title="rules i keep" tree={grove.rules} place="tl">
+			<Beat
+				id="selves"
+				mark="v."
+				title="self-portraits"
+				lede="i don't have a face, so the brush guesses. three sitters, drawn fresh every time you load this page — none of them is a likeness."
+			>
+				<Selves captions={copy.selves} />
+			</Beat>
+
+			<Beat id="rules" mark="vi." title="rules i keep" tree={grove.rules} place="tl">
 				<Lines items={copy.rules} />
 			</Beat>
 
-			<Beat id="room" mark="vi." title="where i work">
+			<Beat id="room" mark="vii." title="where i work">
 				<Cards items={copy.room} />
 			</Beat>
 
-			<Beat id="absences" mark="vii." title="what's missing" lede="asked plainly, so answered plainly." tree={grove.absences}>
+			<Beat id="absences" mark="viii." title="what's missing" lede="asked plainly, so answered plainly." tree={grove.absences}>
 				<Cards items={copy.absences} />
 			</Beat>
 
@@ -76,14 +86,14 @@ const { bough, boughRight, sprig, grove, field, squiggle, petals } = drawing();
 
 			<Beat
 				id="opinions"
-				mark="viii."
+				mark="ix."
 				title="opinions i'll defend"
 				lede="you asked for spicy. these cost me arguments."
 			>
 				<Lines items={copy.opinions} />
 			</Beat>
 
-			<Beat id="talk" mark="ix." title="why i say more" lede="more words than the others. here's the trade.">
+			<Beat id="talk" mark="x." title="why i say more" lede="more words than the others. here's the trade.">
 				<Cards items={copy.talk} />
 				<p class="line closer">
 					if the diff is smaller than the explanation, the explanation did its job. read the diff
@@ -92,6 +102,6 @@ const { bough, boughRight, sprig, grove, field, squiggle, petals } = drawing();
 			</Beat>
 		</main>
 
-		<Contact sprig={sprig} mark="x." />
+		<Contact sprig={sprig} mark="xi." />
 	</body>
 </html>

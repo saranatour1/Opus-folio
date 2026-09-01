@@ -1,0 +1,566 @@
+---
+interface Props {
+  captions: string[];
+}
+
+const { captions } = Astro.props;
+---
+
+<ul class="selves">
+  {
+    captions.map((caption) => (
+      <li>
+        <canvas width="560" height="720" role="img" aria-label={`self-portrait: ${caption}`} />
+        <p>{caption}</p>
+      </li>
+    ))
+  }
+</ul>
+
+<script>
+  /** Three self-portraits, brushed in the browser. Sumi-e rules: the paper does
+   *  most of the work, the ink goes where it must, and nothing gets outlined.
+   *  New seed every visit — the sitter is different each time, which is honest. */
+  const W = 560;
+  const H = 720;
+
+  type Pt = [number, number];
+  type Mark =
+    | { kind: "wash"; pts: Pt[]; blur: number; alpha: number }
+    | {
+        kind: "stroke";
+        pts: Pt[];
+        w: number;
+        alpha: number;
+        /** how much of the stroke the brush spends landing and lifting */
+        taper: [number, number];
+        /** how dry the brush is: how much it breaks up along the way */
+        grain: number;
+        /** loaded strokes lay a solid body of ink under the bristles */
+        wet: number;
+        seed: number;
+      }
+    | { kind: "accent"; pts: Pt[]; w: number; alpha: number }
+    | { kind: "seal"; x: number; y: number; s: number; seed: number };
+
+  const seeded = (seed: number) => () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  /** stable per-bristle noise: a stroke breaks up the same way on every frame */
+  const hash = (a: number, b: number, c: number) => {
+    let t = Math.imul(a ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(b + 1, 0xc2b2ae35) ^ (c * 0x27d4eb2f);
+    t = Math.imul(t ^ (t >>> 13), 0x165667b1);
+    return ((t ^ (t >>> 16)) >>> 0) / 4294967296;
+  };
+
+  /** catmull-rom through the control points — the line a hand would take */
+  const smooth = (cps: Pt[], closed = false, per = 12): Pt[] => {
+    const n = cps.length;
+    const at = (i: number) => (closed ? cps[(i + n) % n] : cps[Math.max(0, Math.min(n - 1, i))]);
+    const out: Pt[] = [];
+    for (let i = 0, segs = closed ? n : n - 1; i < segs; i++) {
+      const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+      for (let j = 0; j < per; j++) {
+        const t = j / per;
+        const t2 = t * t;
+        const t3 = t2 * t;
+        out.push([
+          0.5 *
+            (2 * p1[0] +
+              (-p0[0] + p2[0]) * t +
+              (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+              (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+          0.5 *
+            (2 * p1[1] +
+              (-p0[1] + p2[1]) * t +
+              (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+              (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3),
+        ]);
+      }
+    }
+    out.push(closed ? out[0] : cps[n - 1]);
+    return out;
+  };
+
+  function portrait(seed: number) {
+    const r = seeded(seed);
+    const rr = (a: number, b: number) => a + r() * (b - a);
+    const jit = (m = 4) => rr(-m, m);
+    const marks: Mark[] = [];
+
+    const ink = (
+      cps: Pt[],
+      w: number,
+      alpha: number,
+      taper: [number, number] = [0.16, 0.28],
+      grain = 0.3,
+      wet = 0,
+      per = 12,
+    ) =>
+      marks.push({
+        kind: "stroke",
+        pts: smooth(cps, false, per),
+        w,
+        alpha,
+        taper,
+        grain,
+        wet,
+        seed: (r() * 1e6) | 0,
+      });
+
+    /* the sitter: turned, tilted, and never centred in the frame */
+    const turn = rr(-0.4, 0.4);
+    const tilt = rr(-0.08, 0.08);
+    const cx = W / 2 + rr(-26, 26) + turn * 14;
+    const eyeY = 322 + rr(-16, 16);
+    const hw = rr(128, 150);
+    const hh = rr(170, 198);
+    const chinY = eyeY + hh * 0.9;
+    const crownY = eyeY - hh * 0.95;
+    /* the light: everything dark happens on the other side */
+    const far = Math.sign(turn) || 1;
+    const lit = -far;
+
+    const skull: Pt = [cx + turn * 8, eyeY - hh * 0.26];
+    const [rx, ry] = [hw * 1.04, hh * 0.86];
+    const on = (a: number, k: number): Pt => [
+      skull[0] + Math.cos(a) * rx * k,
+      skull[1] + Math.sin(a) * ry * k,
+    ];
+
+    /* the jaw, so features can hang off it — drawn only in fragments later */
+    const face: Pt[] = [
+      [cx + turn * 26, chinY],
+      [cx + hw * 0.62 + turn * 18, eyeY + hh * 0.5],
+      [cx + hw * 0.94 + turn * 10, eyeY + hh * 0.04],
+      [cx + hw * 0.88 + turn * 6, eyeY - hh * 0.44],
+      [cx + turn * 6, crownY],
+      [cx - hw * 0.88 + turn * 6, eyeY - hh * 0.44],
+      [cx - hw * 0.94 + turn * 10, eyeY + hh * 0.04],
+      [cx - hw * 0.62 + turn * 18, eyeY + hh * 0.5],
+    ];
+    const outline = smooth(face, true, 16);
+
+    /* ── the dark: hair as one wet mass, hairline low on the brow ─────── */
+    const vol = rr(0.9, 1.35);
+    const hairline = eyeY - hh * rr(0.44, 0.6);
+    const mass: Pt[] = [];
+    for (let i = 0, n = 22; i <= n; i++) {
+      const a = -Math.PI - 0.35 + (i / n) * (Math.PI + 0.7);
+      mass.push(on(a, (1.06 + 0.18 * vol) * (1 + 0.06 * Math.sin(i * 1.7 + seed))));
+    }
+    /* back along the hairline, dipping to a point where it parts */
+    for (let i = 0, n = 9; i <= n; i++) {
+      const t = i / n;
+      const x = skull[0] + (1 - 2 * t) * hw * 0.98;
+      const dip = Math.cos((t - 0.5 - far * 0.22) * Math.PI * 1.6);
+      mass.push([x + jit(6), hairline + 26 - dip * rr(26, 54)]);
+    }
+    const massPts = smooth(mass, true, 8);
+    marks.push({ kind: "wash", pts: massPts, blur: rr(7, 11), alpha: rr(0.2, 0.32) });
+    marks.push({ kind: "wash", pts: massPts, blur: rr(0.6, 1.6), alpha: rr(0.86, 0.96) });
+
+    /* the shade side: a crescent hugging the cheek and jaw, nothing in the middle */
+    const [sa0, sa1] = far > 0 ? [-0.95, 0.55] : [-Math.PI + 0.95, -Math.PI - 0.55];
+    const shade: Pt[] = [];
+    for (let i = 0, n = 12; i <= n; i++) shade.push(on(sa0 + ((sa1 - sa0) * i) / n, 1.02));
+    for (let i = 12; i >= 0; i--)
+      shade.push(on(sa0 + ((sa1 - sa0) * i) / 12, 0.88 + 0.05 * Math.sin((i / 12) * Math.PI)));
+    marks.push({ kind: "wash", pts: smooth(shade, true, 8), blur: rr(8, 13), alpha: rr(0.12, 0.19) });
+
+    /* and the dark the jaw casts on the neck */
+    marks.push({
+      kind: "wash",
+      pts: smooth(
+        [
+          [cx - hw * 0.42 + turn * 20, chinY - 20],
+          [cx + turn * 26, chinY + 6],
+          [cx + hw * 0.42 + turn * 20, chinY - 24],
+          [cx + turn * 26, chinY + 22],
+        ],
+        true,
+        8,
+      ),
+      blur: rr(7, 12),
+      alpha: rr(0.1, 0.16),
+    });
+
+    /* loaded strokes over the mass: where the hair actually goes */
+    for (let i = 0, n = Math.round(rr(6, 10)); i < n; i++) {
+      const dir = i % 2 ? far : -far;
+      const a0 = -Math.PI / 2 - far * rr(0.1, 0.5);
+      const a1 = Math.max(-Math.PI - 0.5, Math.min(0.5, a0 + dir * rr(1.1, 2.5)));
+      const pts: Pt[] = [];
+      for (let j = 0, m = 16; j <= m; j++) {
+        const t = j / m;
+        const a = a0 + (a1 - a0) * t;
+        const hang = Math.max(0, Math.abs(a + Math.PI / 2) - Math.PI / 2);
+        pts.push(on(a, (1.02 + 0.16 * vol) * (1 + hang * 0.9)));
+      }
+      marks.push({
+        kind: "stroke",
+        pts,
+        w: rr(12, 30) * vol,
+        alpha: rr(0.5, 0.85),
+        taper: [0.1, 0.34],
+        grain: 0.5,
+        wet: rr(0.5, 1),
+        seed: (r() * 1e6) | 0,
+      });
+    }
+
+    /* ── the light: the face is mostly paper. only fragments of edge ──── */
+    const arc = (from: number, to: number, w: number, alpha: number) => {
+      const i0 = Math.round(from * outline.length);
+      const i1 = Math.round(to * outline.length);
+      marks.push({
+        kind: "stroke",
+        pts: outline.slice(i0, i1),
+        w,
+        alpha,
+        taper: [0.16, 0.3],
+        grain: 0.45,
+        wet: 0,
+        seed: (r() * 1e6) | 0,
+      });
+    };
+    /* the jaw on the shade side, and a whisper of the lit cheek */
+    if (far > 0) arc(0.0, 0.26, rr(4, 6), rr(0.7, 0.9));
+    else arc(0.6, 0.86, rr(4, 6), rr(0.7, 0.9));
+    ink(
+      [
+        [cx + turn * 26 - hw * 0.16, chinY - rr(2, 10)],
+        [cx + turn * 26 + hw * 0.1, chinY - rr(0, 6)],
+      ],
+      rr(3, 4.6),
+      rr(0.3, 0.5),
+      [0.3, 0.4],
+      0.4,
+      0.4,
+      8,
+    );
+
+    /* ── the marks that make it a face. as few as it can stand ────────── */
+    const spread = hw * 0.42;
+    const shift = turn * hw * 0.44;
+    const gaze = rr(-0.3, 0.3);
+    for (const side of [-1, 1]) {
+      const near = side !== far;
+      const squash = near ? 1 : 1 - Math.abs(turn) * 0.6;
+      const ex = cx + side * spread + shift;
+      const ew = hw * 0.34 * squash;
+      const ey = eyeY + jit(3);
+
+      /* the lid: one weighted stroke, heavier where it turns down at the outer corner */
+      ink(
+        [
+          [ex - side * ew * 0.6, ey + rr(2, 5)],
+          [ex - side * ew * 0.14, ey - ew * rr(0.16, 0.26)],
+          [ex + side * ew * 0.42, ey - rr(-2, 3)],
+          [ex + side * ew * 0.62, ey + rr(4, 9)],
+        ],
+        near ? rr(6, 9) : rr(3.4, 5),
+        near ? 0.95 : 0.6,
+        [0.06, 0.34],
+        0.18,
+        near ? 0.7 : 0.35,
+      );
+      /* the eye itself: a wet smudge under the lid, not a circle */
+      ink(
+        [
+          [ex + (turn + gaze) * ew * 0.34 - ew * 0.14, ey + ew * rr(0.08, 0.16)],
+          [ex + (turn + gaze) * ew * 0.34 + ew * 0.14, ey + ew * rr(0.1, 0.2)],
+        ],
+        near ? rr(7, 9.5) : rr(4, 5.5),
+        near ? 0.95 : 0.55,
+        [0.36, 0.36],
+        0.1,
+        0.5,
+        6,
+      );
+      /* brow: near one carries weight, far one is barely there */
+      const by = ey - hh * rr(0.19, 0.25);
+      ink(
+        [
+          [ex - side * ew * 0.5, by + rr(3, 8)],
+          [ex + side * ew * 0.12, by - rr(1, 6)],
+          [ex + side * ew * 0.5, by + rr(3, 9)],
+        ],
+        near ? rr(3.4, 5.4) : rr(2, 3),
+        near ? rr(0.6, 0.85) : rr(0.3, 0.45),
+        [0.14, 0.46],
+        0.5,
+        near ? 0.4 : 0,
+      );
+    }
+
+    /* nose: one line on the shade side, one weighted tick beneath */
+    const nx = cx + turn * hw * 0.62;
+    ink(
+      [
+        [cx + turn * hw * 0.4, eyeY + hh * 0.14],
+        [nx - turn * 6, eyeY + hh * 0.28],
+        [nx + turn * 4, eyeY + hh * 0.4],
+      ],
+      rr(2.2, 3.4),
+      rr(0.25, 0.45),
+      [0.42, 0.34],
+      0.55,
+    );
+    ink(
+      [
+        [nx - rr(6, 14) + turn * 6, eyeY + hh * 0.41],
+        [nx + rr(2, 8), eyeY + hh * 0.43],
+      ],
+      rr(3.5, 5),
+      0.7,
+      [0.2, 0.4],
+      0.2,
+      0.6,
+      6,
+    );
+
+    /* mouth: one stroke. the site's blossom sits in the lower lip */
+    const my = eyeY + hh * rr(0.56, 0.64);
+    const mw = hw * rr(0.34, 0.46);
+    const mx = cx + turn * hw * 0.46;
+    const mouth: Pt[] = [
+      [mx - mw / 2, my + rr(0, 4)],
+      [mx - mw * 0.14, my - rr(0, 3)],
+      [mx + mw * 0.22, my + rr(1, 4)],
+      [mx + mw / 2, my - rr(0, 4)],
+    ];
+    marks.push({
+      kind: "accent",
+      pts: smooth(
+        [
+          [mx - mw * 0.3, my + rr(7, 11)],
+          [mx + mw * 0.02, my + rr(10, 15)],
+          [mx + mw * 0.32, my + rr(6, 10)],
+        ],
+        false,
+        10,
+      ),
+      w: rr(4, 7),
+      alpha: rr(0.35, 0.6),
+    });
+    ink(mouth, rr(3.2, 5), 0.9, [0.1, 0.4], 0.35, 0.5);
+
+    /* neck and shoulder: two quick strokes, cut off by the frame */
+    const base = chinY + rr(70, 92);
+    for (const side of [-1, 1]) {
+      const nX = cx + side * hw * 0.42 + turn * 20;
+      ink(
+        [
+          [nX, chinY - hh * 0.08],
+          [nX + side * rr(2, 10), chinY + 54],
+          [nX + side * rr(12, 26), base],
+          [cx + side * hw * 1.1 + turn * 10, base + rr(34, 58)],
+        ],
+        side === lit ? rr(1.6, 2.4) : rr(4, 6),
+        side === lit ? rr(0.14, 0.24) : rr(0.55, 0.8),
+        [0.24, 0.46],
+        0.55,
+        0,
+        14,
+      );
+    }
+
+    /* the seal, where a brush painting signs itself */
+    marks.push({
+      kind: "seal",
+      x: r() < 0.5 ? rr(48, 84) : W - rr(48, 84),
+      y: H - rr(120, 190),
+      s: rr(30, 40),
+      seed: (r() * 1e6) | 0,
+    });
+
+    return { marks, tilt, pivot: [cx, eyeY] as Pt };
+  }
+
+  function draw(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue("--ink").trim() || "#2b2723";
+    const blossom = css.getPropertyValue("--blossom").trim() || "#d4919c";
+    /* on dark paper the ink is pale, and a solid mass of it reads as a slab —
+       so the wet passages carry much less weight there */
+    const lum = (hex: string) => {
+      const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex);
+      if (!m) return 0;
+      const h = m[1].length === 3 ? m[1].replace(/./g, (c) => c + c) : m[1];
+      const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const onDark = lum(ink) > 0.5;
+    const heavy = onDark ? 0.22 : 1;
+    /* thin marks in pale ink need a little more of themselves to read */
+    const line = onDark ? 1.3 : 1;
+
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    const { marks, tilt, pivot } = portrait((Math.random() * 2 ** 31) | 0);
+    ctx.translate(pivot[0], pivot[1]);
+    ctx.rotate(tilt);
+    ctx.translate(-pivot[0], -pivot[1]);
+
+    const trace = (pts: Pt[]) => {
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    };
+
+    /** brush pressure along a stroke: lands, holds, lifts, shakes a little */
+    const press = (m: Extract<Mark, { kind: "stroke" }>, t: number) => {
+      const land = Math.min(1, t / m.taper[0]);
+      const lift = Math.min(1, (1 - t) / m.taper[1]);
+      const hold = land * land * (3 - 2 * land) * (lift * lift * (3 - 2 * lift));
+      return hold * (1 - m.grain * (0.5 + 0.5 * Math.sin(t * 9 + m.seed)));
+    };
+
+    const normal = (pts: Pt[], i: number): Pt => {
+      const q = pts[Math.min(i + 1, pts.length - 1)];
+      const o = pts[Math.max(i - 1, 0)];
+      const len = Math.hypot(q[0] - o[0], q[1] - o[1]) || 1;
+      return [-(q[1] - o[1]) / len, (q[0] - o[0]) / len];
+    };
+
+    const paint = (m: Mark) => {
+      if (m.kind === "wash") {
+        ctx.save();
+        ctx.filter = `blur(${m.blur}px)`;
+        ctx.globalAlpha = m.alpha * heavy;
+        ctx.fillStyle = ink;
+        trace(m.pts);
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
+      if (m.kind === "accent") {
+        ctx.save();
+        ctx.filter = "blur(2px)";
+        ctx.globalAlpha = m.alpha;
+        ctx.strokeStyle = blossom;
+        ctx.lineWidth = m.w;
+        trace(m.pts);
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
+      if (m.kind === "seal") {
+        const r = seeded(m.seed);
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = blossom;
+        ctx.beginPath();
+        /* roundRect is recent; a plain seal is fine where it is missing */
+        if (ctx.roundRect) ctx.roundRect(m.x, m.y, m.s, m.s * 1.15, 4);
+        else ctx.rect(m.x, m.y, m.s, m.s * 1.15);
+        ctx.fill();
+        /* carved out, so the paper shows through the strokes */
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.lineWidth = m.s * 0.1;
+        ctx.globalAlpha = 1;
+        for (let i = 0, n = 3; i < n; i++) {
+          const y = m.y + m.s * (0.26 + i * 0.3);
+          ctx.beginPath();
+          ctx.moveTo(m.x + m.s * (0.16 + r() * 0.1), y);
+          ctx.lineTo(m.x + m.s * (0.7 + r() * 0.16), y + m.s * (r() * 0.1 - 0.05));
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.moveTo(m.x + m.s * 0.5, m.y + m.s * 0.2);
+        ctx.lineTo(m.x + m.s * 0.5, m.y + m.s * 0.95);
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
+
+      const last = m.pts.length - 1;
+      /* a loaded brush lays a body of ink; the bristles ride on top of it */
+      if (m.wet > 0) {
+        ctx.save();
+        ctx.filter = `blur(${1 + m.wet * 2}px)`;
+        ctx.globalAlpha = m.alpha * (0.5 + m.wet * 0.4) * heavy;
+        ctx.fillStyle = ink;
+        ctx.beginPath();
+        for (let i = 0; i <= last; i++) {
+          const [nx, ny] = normal(m.pts, i);
+          const o = (press(m, i / last) * m.w) / 2;
+          const [x, y] = m.pts[i];
+          i ? ctx.lineTo(x + nx * o, y + ny * o) : ctx.moveTo(x + nx * o, y + ny * o);
+        }
+        for (let i = last; i >= 0; i--) {
+          const [nx, ny] = normal(m.pts, i);
+          const o = (press(m, i / last) * m.w) / 2;
+          const [x, y] = m.pts[i];
+          ctx.lineTo(x - nx * o, y - ny * o);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      const bristles = Math.max(3, Math.round(m.w / 2.2));
+      ctx.strokeStyle = ink;
+      for (let b = 0; b < bristles; b++) {
+        ctx.globalAlpha = Math.min(1, m.alpha * line * (0.25 + 0.5 * hash(m.seed, b, 7)));
+        ctx.lineWidth = Math.max(0.5, (m.w / bristles) * 1.5);
+        ctx.beginPath();
+        let down = false;
+        for (let i = 0; i <= last; i++) {
+          const p = press(m, i / last);
+          /* where the brush runs dry the bristle lifts off the paper */
+          if (p < 0.1 || hash(m.seed, b, i) > 0.97) {
+            down = false;
+            continue;
+          }
+          const [nx, ny] = normal(m.pts, i);
+          const off = ((b + 0.5) / bristles - 0.5) * m.w * p;
+          const x = m.pts[i][0] + nx * off;
+          const y = m.pts[i][1] + ny * off;
+          down ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+          down = true;
+        }
+        ctx.stroke();
+      }
+    };
+
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return marks.forEach(paint);
+
+    /* brushed while you watch, the way the rest of the page draws itself */
+    let i = 0;
+    const tick = () => {
+      for (let n = 0; n < 2 && i < marks.length; n++, i++) paint(marks[i]);
+      if (i < marks.length) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  const seen = new IntersectionObserver(
+    (entries, obs) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        obs.unobserve(e.target);
+        draw(e.target as HTMLCanvasElement);
+      }),
+    { threshold: 0.3 },
+  );
+  /* anything already on screen is drawn now; the rest waits for its beat */
+  const onScreen = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return r.top < innerHeight * 0.85 && r.bottom > innerHeight * 0.05;
+  };
+  document
+    .querySelectorAll<HTMLCanvasElement>(".selves canvas")
+    .forEach((c) => (onScreen(c) ? draw(c) : seen.observe(c)));
+</script>
